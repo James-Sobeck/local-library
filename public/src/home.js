@@ -17,6 +17,7 @@ function getBooksBorrowedCount(books) {
 }
 
 function sortnSplice(arr){
+  //hard code 5 bc the project is always top 5, if needed pass in an int and replace 5 
   arr.sort((a,b)=>b.count -a.count);
   return arr.splice(0,5);
 }
@@ -26,20 +27,17 @@ function getMostCommonGenres(books) {
   // MAP array into just genres then count the times it occurs
   const result = books.map((book) => book.genre);
   const counts = {};
-  result.forEach(num => {
-    counts[num] = (counts[num] || 0) +1;
-  });
+  for(const num of result){
+    counts[num] = counts[num] ? counts[num] + 1 : 1;
+  }
   // format to name: genre, count: count
   //return top 5
   let answer = [];
   let names = Object.keys(counts);
   let counter = Object.values(counts);
-  for(let i = 0;i<5;i++){
-    let genreObject = {};
-    const {name: name, count: count} = genreObject;
-    genreObject.name = names[i];
-    genreObject.count = counter[i];
-    answer.push(genreObject);
+  for(let i = 0;i<5;i++){ //i<5 to get top five
+    //for loop to control the index of names and counter
+    answer.push({name: names[i], count: counter[i]});
   }
   return sortnSplice(answer)
 }
@@ -47,44 +45,21 @@ function getMostCommonGenres(books) {
 
 function getMostPopularBooks(books) {
   //const result = books.map((book)=> book.borrows) //an array of each borrowed element
-  let answer = [];
-  books.forEach(book => {
-    //need to get borrows.length and set to var for count in obj
-    let booked={};
-    const{'name':name, 'count':count} = booked;
-    booked.name = book.title;
-    booked.count = book.borrows.length;
-    answer.push(booked);
-  });
-  return sortnSplice(answer)
+  return sortnSplice(books.map(({title, borrows} = book)=>{ 
+    return {name: title, count: borrows.length};
+  }));
 }
 
 function getMostPopularAuthors(books, authors) {
   //input is array of book and author objects
   //array[top5], books checkedout the most, adding all the books of the author then sort.
-  /*
-  First, get each book and get author ID, and count of borrows
-  then get each author id and match with count
-  then sort by top 5
-  */
-  let answer = [];
-  let result = [];
-  books.forEach(book => {
-    let booked = {}
-    const {authId, borrowsCount} = booked;
-    booked.borrowsCount = book.borrows.length;
-    booked.authId = book.authorId;
-    answer.push(booked);
-  });
-  for(let i = 0; i<authors.length;i++){
-    let authorFind = answer.find((book)=> book.authId === authors[i].id)
-    let template = {};
-    const {name,count} = template;
-    template.name = `${authors[i].name.first} ${authors[i].name.last}`;
-    template.count = authorFind.borrowsCount;
-    result.push(template);
-  }
-  return sortnSplice(result);
+  return sortnSplice(authors.reduce((result, {id ,name:{first}, name:{last}} )=>{
+          let authorFind = books.map(({authorId, borrows} = booked)=>{
+            return {authId: authorId, borrowsCount: borrows.length};
+          }).find((book) => book.authId === id);
+          result.push({name: `${first} ${last}`, count: authorFind.borrowsCount})
+          return result;
+      },[]))
 }
 
 
